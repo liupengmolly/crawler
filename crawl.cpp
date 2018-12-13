@@ -21,11 +21,15 @@ unsigned char *dataHash;
 
 
 int main(){
+    // string str = "../xxgk/xsyg/index.html";
+    // int pos = str.find_last_of('/');
+    // cout<<pos<<endl;
+    // cout<<str.substr(0,pos)<<endl;
+    // cout<<str.find('..');
+
     Arg *arg = new Arg;
-    URL url;
-    url.host = "sports.qq.com";
-    url.pagepath = "/nbavideo/";
-    arg->url = url;
+    arg->url.host = "www.bnu.edu.cn";
+    arg->url.pagepath = "/";
     
 	dataHash = (unsigned char *)malloc(LENGTH*17*sizeof(unsigned char));
 	memset(dataHash,0,LENGTH*17*sizeof(unsigned char));
@@ -39,8 +43,7 @@ int main(){
     // reptile_regex(sh,pattern);
     // close(sockfd);
     while(!q.empty()){
-        url = q.front();
-        arg->url = url;
+        arg->url = q.front();
         q.pop();
         SocketManager *sm = SocketManager::getInstance();
         sockfd = sm->createSocket(PORT,arg);

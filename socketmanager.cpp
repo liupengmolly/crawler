@@ -15,7 +15,8 @@
 
 SocketManager::SocketManager() {
     base = event_base_new();
-    event_base_dispatch(base);              //初始dispatch,没有这个就会出问题，没太懂，以后再看吧
+    event_base_dispatch(base);       //初始dispatch,没有这个就会出问题，没太懂，以后再看吧
+    pages_count = 0;
 }
 SocketManager::~SocketManager() {
     event_base_free(base);
@@ -31,33 +32,52 @@ SocketManager* SocketManager::getInstance() {   //饿汉模式的单例
 SocketManager* SocketManager::sc = NULL;
 SocketManager::Garbo SocketManager::garbo;
 
-void reptile_regex(string buf,char *pattern){
+string combine_url(string pre,string cur){
+    int last_splash_pos,first_double_dot_pos;
+    if((last_splash_pos = pre.find_last_of('/'))==-1)return cur;
+    pre = pre.substr(0,last_splash_pos);
+
+    while((first_double_dot_pos=cur.find('..'))==0){
+        cur = cur.substr(3,cur.size());
+        if((last_splash_pos=pre.find_last_of('/'))==-1){
+            pre = "";
+            break;
+        }
+        else pre = pre.substr(0,last_splash_pos);
+    }
+    string splash = "/";
+    return pre+splash+cur;
+}
+
+void reptile_regex(string buf,char *pattern,URL url){
     regex img_regex(pattern);
 
     cout << " = = = = = = = = = = = = = = = = = = = = = = = = ="<<endl;
     auto words_begin = sregex_iterator(buf.begin(),buf.end(),img_regex);
     auto words_end = sregex_iterator();
-    regex p1("[a-zA-Z]{1,10}\.qq\.com");
-    match_results<string::const_iterator> result;
-    regex p2("http(s)?:\/\/[a-zA-Z]{1,10}\.qq\.com\/");
-    string t("\/");
+    // regex p1("www.bnu.edu.cn");
+    // match_results<string::const_iterator> result;
+    // regex p2("(http:\/\/)?www.bnu.edu.cn\/");
+    // string t("\/");
     string match_str;
     URL extracted_url;
 
     for(sregex_iterator i = words_begin;i!=words_end;++i){
         smatch match = *i;
-        match_str = match.str();
+        match_str = match.str().substr(6,match.str().size());
 
-        string::const_iterator start = match_str.begin();
-        string::const_iterator end = match_str.end();
-        regex_search(start,end,result,p1);    
-        if(result.empty()){
-            printf("host not match");
-            return;
-        }
+        // string::const_iterator start = match_str.begin();
+        // string::const_iterator end = match_str.end();
+        // regex_search(start,end,result,p1);    
+        // if(result.empty()){
+            // printf("host not match");
+            // return;
+        // }
 
-        extracted_url.host = result[0];
-        extracted_url.pagepath = regex_replace(match_str,p2,t);
+        extracted_url.host = "www.bnu.edu.cn";
+        
+        // extracted_url.pagepath = regex_replace(match_str,p2,t);
+        extracted_url.pagepath = combine_url(url.pagepath,match_str);
         cout<<extracted_url.host<<" "<<extracted_url.pagepath<<"\t";
         process_url(extracted_url);
     }
@@ -68,15 +88,16 @@ void on_read(int sock,short event,void *arg){
     Arg *argv = (Arg*)arg;
     SocketManager *sm = SocketManager::getInstance();
     sm->recvHttpRespond(sock,argv->ch);
+    sm->pageCount();
     string sh =(string)argv->ch;
-    char pattern[] = {"http(s)?://[a-z]*.qq.com/.*?(?=[(\">)|(\" )|(\'>)|(\' )])"};
-    reptile_regex(sh,pattern);
+    char pattern[] = {"href=\"(?!http).*?html"};
+    reptile_regex(sh,pattern,argv->url);
     sm->closeSocket(sock);
     event_del(argv->func);
 }
 
 void on_send(int sock,short event,void *arg){
-    struct event* read_ev;
+    struct event *read_ev = new struct event;
     Arg* argv = (Arg*)arg;
     SocketManager *sm = SocketManager::getInstance();
     sm->sendHttpRequest(sock,argv->url);
@@ -150,4 +171,10 @@ void SocketManager::recvHttpRespond(int sockfd,char *ch){
 int SocketManager::closeSocket(int sockfd) {
     close(sockfd);
     return 0;
+}
+
+void SocketManager::pageCount(){
+    pages_count += 1;
+    cout<<"crawl "<<pages_count<<" pages";
+    return;
 }

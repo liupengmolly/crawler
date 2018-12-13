@@ -1,6 +1,6 @@
 all:main
 main:crawl.o socketmanager.o url.o
-	g++ -o ./bin/main crawl.o socketmanager.o url.o -levent
+	g++ -o ./bin/main -L /usr/local/lib crawl.o socketmanager.o url.o -levent -levent_core
 crawl.o:crawl.cpp socketmanager.hpp url.hpp
 	g++ -g -c crawl.cpp
 socketmanager.o: socketmanager.cpp crawl.cpp

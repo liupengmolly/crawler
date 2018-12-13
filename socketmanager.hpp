@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-
 #include <iostream>
 #include <event.h>
 #include "url.hpp"
@@ -14,7 +13,7 @@ using namespace std;
 #ifndef _ARG
 #define _ARG
 typedef struct Arg {
-	char ch[1000000];
+	char ch[5000000];
 	struct URL url;
     struct event* func;
 }Arg;
@@ -34,14 +33,17 @@ private:
 	};
 	static Garbo garbo;
 public:
+	int pages_count;
     struct event_base *base;
     static SocketManager *getInstance();
     int createSocket(int port,Arg *arg);
     void sendHttpRequest(int sock,URL url);
     void recvHttpRespond(int sockfd,char *ch);
     int closeSocket(int sockfd);
+	void pageCount();
 };
 
+string combine_url(string pre,string cur);
 void reptile_regex(string buf,char *pattern);
 void on_read(int sock,short event,void *arg);
 void on_send(int sock,short event,void *arg);
