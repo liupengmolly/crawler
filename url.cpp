@@ -2,7 +2,6 @@
 #include<iostream>
 #include<queue>
 #include "url.hpp"
-#include "crawl.hpp"
 #ifndef LENGTH
 #define LENGTH 50000
 #endif
