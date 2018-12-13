@@ -7,3 +7,6 @@ socketmanager.o: socketmanager.cpp crawl.cpp
 	g++ -g -c socketmanager.cpp
 url.o:url.cpp url.hpp crawl.hpp
 	g++ -g -c url.cpp
+
+clean:
+	rm -rf *.o ./bin/main
