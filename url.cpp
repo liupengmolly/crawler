@@ -34,7 +34,6 @@ int bf_dataCheck(const void *key, unsigned char *dataHash)
 	return 1;//right 
 }
 
-
 unsigned int MurmurHash ( const void * key, int len, unsigned int seed )
 {
 	// 'm' and 'r' are mixing constants generated offline.
