@@ -17,7 +17,7 @@ typedef struct Arg {
 	struct URL url;
     struct event* func;
 }Arg;
-#endif
+#endif                                                                                                                                                                           
 
 class SocketManager{
 private:
@@ -37,10 +37,10 @@ public:
     struct event_base *base;
     static SocketManager *getInstance();
     int createSocket(int port,Arg *arg);
-    void sendHttpRequest(int sock,URL url);
-    void recvHttpRespond(int sockfd,char *ch);
+    int sendHttpRequest(int sock,URL url);
+    int recvHttpRespond(int sockfd,Arg *arg);
     int closeSocket(int sockfd);
-	void pageCount();
+	void pageCount(Arg *arg);
 };
 
 string combine_url(string pre,string cur);

@@ -6,8 +6,9 @@
 #define LENGTH 50000
 #endif
 extern queue<URL> q;
-extern queue<URL> visited_q;
 extern unsigned char *dataHash;
+extern unsigned char *nHostHash;
+extern string log;
 int A[17] = {2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59};
 
 void bf_dataHash(const void *key,unsigned char *dataHash)
@@ -90,10 +91,18 @@ void process_url(URL url){
 	if(bf_dataCheck(full_url.c_str(),dataHash)!=1){
 		bf_dataHash(full_url.c_str(),dataHash);
 		q.push(url);
-		cout<<q.size()<<endl;
+        cout<<url.host<<" "<<url.pagepath<<" "<<to_string(q.size())<<endl;
 	}
-	else
-		cout<<"duplicate"<<endl;
 	return ;
 }
 
+bool valid_host(string host){
+	if(bf_dataCheck(host.c_str(),nHostHash)!=1)return true;
+	return false;
+}
+
+void process_nhost(string host){
+	if(bf_dataCheck(host.c_str(),nHostHash)!=1){
+		bf_dataHash(host.c_str(),nHostHash);
+	}
+}

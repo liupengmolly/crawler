@@ -16,4 +16,6 @@ void bf_dataHash(const void *key,unsigned char *dataHash);
 int bf_dataCheck(const void *key, unsigned char *dataHash);
 unsigned int MurmurHash ( const void *key, int len, unsigned int seed);
 void process_url(URL url);
+bool valid_host(string host);
+void process_nhost(string host);
 #endif
