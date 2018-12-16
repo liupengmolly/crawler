@@ -3,7 +3,7 @@
 #include<queue>
 #include "url.hpp"
 #ifndef LENGTH
-#define LENGTH 50000
+#define LENGTH 1000000
 #endif
 extern queue<URL> q;
 extern unsigned char *dataHash;
@@ -91,7 +91,9 @@ void process_url(URL url){
 	if(bf_dataCheck(full_url.c_str(),dataHash)!=1){
 		bf_dataHash(full_url.c_str(),dataHash);
 		q.push(url);
-        cout<<url.host<<" "<<url.pagepath<<" "<<to_string(q.size())<<endl;
+        cout<<(url.host+" "+url.pagepath);
+        cout<<" |vh|";
+		cout<<(to_string(q.size())+"\n");
 	}
 	return ;
 }

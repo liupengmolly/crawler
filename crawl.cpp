@@ -13,7 +13,7 @@
 using namespace std;
 #define PORT 80
 #ifndef LENGTH
-#define LENGTH 50000
+#define LENGTH 16000000
 #endif
 queue<URL> q;
 queue<URL> visited_q;

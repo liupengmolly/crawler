@@ -88,6 +88,9 @@ void reptile_regex(string buf,char *pattern,URL url){
             extracted_url.pagepath = regex_replace(match_str,p2,t);
             if(extracted_url.pagepath == "")extracted_url.pagepath="/";
         }
+        if(extracted_url.pagepath == "/jyjx/1/index.html"){
+            ;
+        }
         if(valid_host(extracted_url.host)==false){
             // string tmp = "host not valid, not add in queue\n";
             // log+=tmp;
@@ -144,7 +147,7 @@ void on_send(int sock,short event,void *arg){
 
     // event_set(time_ev,sock,EV_TIMEOUT,on)
 
-    event_set(read_ev,sock,EV_TIMEOUT|EV_READ|EV_PERSIST,on_read,(void*)argv);
+    event_set(read_ev,sock,EV_READ|EV_PERSIST,on_read,(void*)argv);
     event_base_set(sm->base,read_ev);
     event_add(read_ev,NULL);
 }
