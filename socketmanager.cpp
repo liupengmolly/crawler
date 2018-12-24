@@ -28,7 +28,7 @@ extern threadpool thpool;
 extern pthread_mutex_t fmtx;
 extern string tmp_links;
 extern int ccount;
-extern int fixedAddr;
+extern long int fixedAddr;
 extern int sockets_num;
 extern pthread_mutex_t smtx;
 
@@ -74,6 +74,7 @@ string combine_url(string pre,string cur){
 }
 
 void reptile_regex(regexPara* reg){
+	cout<<"in reptiel_regx"<<endl;
     string buf = reg->sh;
     string chost = reg->url.host;
     string cpagepath = reg->url.pagepath;
@@ -135,6 +136,7 @@ void reptile_regex(regexPara* reg){
         if(host!=NULL){
             struct in_addr serv_addr = *((struct in_addr *)host->h_addr);
             if(serv_addr.s_addr==fixedAddr){
+				cout<<1;
                 process_url(extracted_url);
                 sub_links.insert("http://"+extracted_url.host+extracted_url.pagepath);
             }else{
@@ -177,7 +179,9 @@ void on_read(int sock,short event,void *arg){
             reg->sh = sh;
             reg->pattern = "href=\"(http(s)?://[a-z0-9]{1,10}(\\.[a-z0-9]{1,10}){1,4}/)?.*?(?=\")";
             reg->url = argv->url;
+			cout<<"before add pool"<<endl;
             thpool_add_work(thpool, (void (*)(void*))reptile_regex,(void *)reg);
+			cout<<"after add pool"<<endl;
             sm->closeSocket(sock);
             pthread_mutex_lock(&smtx);
             sockets_num--;
@@ -203,6 +207,7 @@ void on_send(int sock,short event,void *arg){
 
 
 int SocketManager::createSocket(int port,Arg *arg){
+	cout<<"in createsocket"<<endl;
     struct event listen_ev;
     struct hostent *host;
     struct sockaddr_in servAddr;
@@ -216,10 +221,10 @@ int SocketManager::createSocket(int port,Arg *arg){
     servAddr.sin_addr = *((struct in_addr *)host->h_addr);
     servAddr.sin_port = htons(port);
     bzero(&(servAddr.sin_zero),8);
-    if(fixedAddr == 0){
-        fixedAddr = servAddr.sin_addr.s_addr;
-    }
-    if(servAddr.sin_addr.s_addr!=fixedAddr)return -1;
+    if(servAddr.sin_addr.s_addr!=fixedAddr){
+		cout<<servAddr.sin_addr.s_addr<<" "<<fixedAddr<<endl;
+		return -1;
+	}
 
     sockfd = socket(AF_INET,SOCK_STREAM,0);
     if(sockfd == -1){

@@ -34,7 +34,7 @@ pthread_mutex_t fmtx;
 pthread_mutex_t smtx;
 string tmp_links;
 int ccount;
-int fixedAddr;
+long int fixedAddr;
 int sockets_num;
 
 int main(int argc, char* argv[]){
@@ -43,8 +43,13 @@ int main(int argc, char* argv[]){
     arg->url.pagepath = "/";
     int PORT = std::atoi(argv[2]);
     page_count = 0;
-    fixedAddr = 0;
     sockets_num = 0;
+
+	struct hostent *host = gethostbyname(argv[1]);
+	struct sockaddr_in servaddr;
+	servaddr.sin_addr = *((struct in_addr *)host->h_addr);
+    fixedAddr = servaddr.sin_addr.s_addr;
+	cout<<servaddr.sin_addr.s_addr<<" "<<fixedAddr<<endl;
 
     host_bf = bf_create(VECTORSIZE);
     url_bf = bf_create(VECTORSIZE);
