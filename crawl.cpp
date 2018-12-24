@@ -34,7 +34,7 @@ pthread_mutex_t fmtx;
 pthread_mutex_t smtx;
 string tmp_links;
 int ccount;
-int servAddr;
+int fixedAddr;
 int sockets_num;
 
 int main(int argc, char* argv[]){
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]){
     arg->url.pagepath = "/";
     int PORT = std::atoi(argv[2]);
     page_count = 0;
-    servAddr = 0;
+    fixedAddr = 0;
     sockets_num = 0;
 
     host_bf = bf_create(VECTORSIZE);
@@ -51,7 +51,6 @@ int main(int argc, char* argv[]){
 
     ofstream result;
     result.open(argv[3]);
-    if(!result.is_open())cout<<"url.txt not open"<<endl;
     out.open("tmp_link.txt");
 
     thpool = thpool_init(10);
@@ -110,27 +109,15 @@ int main(int argc, char* argv[]){
         while((pos2 = buffer_string.find("|",pos1))!=string::npos){
             sub_url = buffer_string.substr(pos1,pos2-pos1);
             sub_id = url_id_pairs[sub_url];
-            // ele e;
-            // e.row = main_id;
-            // e.col = sub_id;
-            // matrix_eles.push_back(e);
             if(sub_id!=0)result<<main_id<<" "<<sub_id<<endl;
             pos1 = pos2+1;
         }
         if(buffer_string.size()>pos1){
             sub_url = buffer_string.substr(pos1,buffer_string.size()-pos1);
             sub_id = url_id_pairs[sub_url];
-            // ele e;
-            // e.row = main_id;
-            // e.col = sub_id;
-            // matrix_eles.push_back(e)
             if(sub_id!=0)result<<main_id<<" "<<sub_id<<endl;
         }
     }
     result.close();
-    // cout<<endl;
-    // for(ele e:matrix_eles){
-    //     cout<<e.row<<" "<<e.col<<endl;
-    // }
     return 0;
 }

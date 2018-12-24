@@ -28,7 +28,7 @@ extern threadpool thpool;
 extern pthread_mutex_t fmtx;
 extern string tmp_links;
 extern int ccount;
-extern int servAddr;
+extern int fixedAddr;
 extern int sockets_num;
 extern pthread_mutex_t smtx;
 
@@ -134,10 +134,7 @@ void reptile_regex(regexPara* reg){
         host = gethostbyname(extracted_url.host.c_str());
         if(host!=NULL){
             struct in_addr serv_addr = *((struct in_addr *)host->h_addr);
-            if(servAddr == 0){
-                servAddr = serv_addr.s_addr;
-            }
-            if(serv_addr.s_addr==servAddr){
+            if(serv_addr.s_addr==fixedAddr){
                 process_url(extracted_url);
                 sub_links.insert("http://"+extracted_url.host+extracted_url.pagepath);
             }else{
@@ -219,7 +216,10 @@ int SocketManager::createSocket(int port,Arg *arg){
     servAddr.sin_addr = *((struct in_addr *)host->h_addr);
     servAddr.sin_port = htons(port);
     bzero(&(servAddr.sin_zero),8);
-    if(servAddr.sin_addr.s_addr!=3528813578)return -1;
+    if(fixedAddr == 0){
+        fixedAddr = servAddr.sin_addr.s_addr;
+    }
+    if(servAddr.sin_addr.s_addr!=fixedAddr)return -1;
 
     sockfd = socket(AF_INET,SOCK_STREAM,0);
     if(sockfd == -1){
