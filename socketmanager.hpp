@@ -7,7 +7,8 @@ extern "C" {
 
 #include <iostream>
 #include <event.h>
-#include "url.hpp"
+#include "bloomfilter.hpp"
+#include "thpool.h"
 using namespace std;
 
 #ifndef _ARG
@@ -17,7 +18,13 @@ typedef struct Arg {
 	struct URL url;
     struct event* func;
 }Arg;
+typedef struct regex_para{
+    string sh;
+    string pattern;
+    URL url;
+}regexPara;
 #endif                                                                                                                                                                           
+
 
 class SocketManager{
 private:
@@ -44,7 +51,7 @@ public:
 };
 
 string combine_url(string pre,string cur);
-void reptile_regex(string buf,char *pattern);
+void reptile_regex(regexPara* reg);
 void on_read(int sock,short event,void *arg);
 void on_send(int sock,short event,void *arg);
 
