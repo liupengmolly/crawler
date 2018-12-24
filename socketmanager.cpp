@@ -286,7 +286,7 @@ int SocketManager::closeSocket(int sockfd) {
 void SocketManager::pageCount(Arg *arg){
     pages_count += 1;
     // cout<<("c p "+to_string(visited_q.size())+"/"+to_string(pages_count)+" ");
-    if(pages_count%1000==0){
+    if(pages_count>0){
         cout<<("c p "+to_string(visited_q.size())+"/"+to_string(pages_count)+" "+to_string(q->get_nready()))<<" "<<sockets_num<<"\n";
     }
     return;
