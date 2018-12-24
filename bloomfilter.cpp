@@ -171,15 +171,10 @@ void process_url(URL url){
 	string full_url = url.host+url.pagepath;
 	int len = full_url.copy(buf,full_url.length());
 	buf[len]='\0';
-	cout<<2;
-	cout<<buf<<endl;
 	if(bf_search(url_bf,buf)!=1){
-        // cout<<full_url+" |vh|"<<endl;
-		cout<<3;
 		bf_add(url_bf,buf);
 		q->push_msg(url);
 		page_count++;
-		// url_id_pairs[full_url]=page_count;
 	}
 	return ;
 }

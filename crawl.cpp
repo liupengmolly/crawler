@@ -49,7 +49,6 @@ int main(int argc, char* argv[]){
 	struct sockaddr_in servaddr;
 	servaddr.sin_addr = *((struct in_addr *)host->h_addr);
     fixedAddr = servaddr.sin_addr.s_addr;
-	cout<<servaddr.sin_addr.s_addr<<" "<<fixedAddr<<endl;
 
     host_bf = bf_create(VECTORSIZE);
     url_bf = bf_create(VECTORSIZE);

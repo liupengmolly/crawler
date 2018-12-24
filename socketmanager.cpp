@@ -74,7 +74,6 @@ string combine_url(string pre,string cur){
 }
 
 void reptile_regex(regexPara* reg){
-	cout<<"in reptiel_regx"<<endl;
     string buf = reg->sh;
     string chost = reg->url.host;
     string cpagepath = reg->url.pagepath;
@@ -113,7 +112,6 @@ void reptile_regex(regexPara* reg){
         if(match_str.find(url_end)!=string::npos)continue;
         if(match_str.find(jpg)!=string::npos)continue;
 
-        // cout<<"match_str "<<match_str<<endl;
         string::const_iterator start = match_str.begin();
         string::const_iterator end = match_str.end();
         regex_search(start,end,result,p1);    
@@ -136,7 +134,6 @@ void reptile_regex(regexPara* reg){
         if(host!=NULL){
             struct in_addr serv_addr = *((struct in_addr *)host->h_addr);
             if(serv_addr.s_addr==fixedAddr){
-				cout<<1;
                 process_url(extracted_url);
                 sub_links.insert("http://"+extracted_url.host+extracted_url.pagepath);
             }else{
@@ -179,9 +176,7 @@ void on_read(int sock,short event,void *arg){
             reg->sh = sh;
             reg->pattern = "href=\"(http(s)?://[a-z0-9]{1,10}(\\.[a-z0-9]{1,10}){1,4}/)?.*?(?=\")";
             reg->url = argv->url;
-			cout<<"before add pool"<<endl;
             thpool_add_work(thpool, (void (*)(void*))reptile_regex,(void *)reg);
-			cout<<"after add pool"<<endl;
             sm->closeSocket(sock);
             pthread_mutex_lock(&smtx);
             sockets_num--;
@@ -207,7 +202,6 @@ void on_send(int sock,short event,void *arg){
 
 
 int SocketManager::createSocket(int port,Arg *arg){
-	cout<<"in createsocket"<<endl;
     struct event listen_ev;
     struct hostent *host;
     struct sockaddr_in servAddr;
@@ -253,13 +247,6 @@ int SocketManager::sendHttpRequest(int sockfd,URL url){
         return -1;
     }
     sprintf(sendBuf,"GET %s HTTP/1.1 \r\nHOST: %s\r\nUser-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36 \r\nConnection: Close\r\n\r\n",url.pagepath.c_str(),url.host.c_str());    
-    // struct timeval timeout={1,0};
-    // int ret=setsockopt(sockfd,SOL_SOCKET,SO_SNDTIMEO,(const char*)&timeout,sizeof(timeout));
-    // if(ret==-1){
-        // cout<<"404"<<endl;
-        // process_nhost(url.host);
-        // return -1;
-    // }
     if((sendSize = send(sockfd,sendBuf,BUF_SIZE,0)) == -1){
         perror("send 失败");
     }
@@ -290,8 +277,7 @@ int SocketManager::closeSocket(int sockfd) {
 
 void SocketManager::pageCount(Arg *arg){
     pages_count += 1;
-    // cout<<("c p "+to_string(visited_q.size())+"/"+to_string(pages_count)+" ");
-    if(pages_count>0){
+    if(pages_count%1000==0){
         cout<<("c p "+to_string(visited_q.size())+"/"+to_string(pages_count)+" "+to_string(q->get_nready()))<<" "<<sockets_num<<"\n";
     }
     return;

@@ -1,6 +1,6 @@
 all:main
 main:crawl.o socketmanager.o Message_Queue.o bloomfilter.o thpool.o
-	g++ -std=c++11 -o ./bin/main crawl.o socketmanager.o Message_Queue.o bloomfilter.o thpool.o -levent -levent_core -pthread
+	g++ -std=c++11 -o crawl crawl.o socketmanager.o Message_Queue.o bloomfilter.o thpool.o -levent -levent_core -lpthread
 crawl.o:crawl.cpp socketmanager.hpp bloomfilter.hpp Message_Queue.cpp
 	g++ -std=c++11 -g -c crawl.cpp
 socketmanager.o: socketmanager.cpp bloomfilter.hpp Message_Queue.cpp thpool.h
