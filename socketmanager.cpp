@@ -13,6 +13,7 @@
 #include <event.h>
 #include <time.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <set>
 #include <fstream>
 #include <vector>
@@ -26,6 +27,7 @@ extern vector<string> visited_q;
 extern ofstream out;
 extern threadpool thpool;
 extern pthread_mutex_t fmtx;
+extern pthread_mutex_t cmtx;
 extern string tmp_links;
 extern int ccount;
 extern long int fixedAddr;
@@ -50,7 +52,6 @@ SocketManager* SocketManager::getInstance() {   //饿汉模式的单例
 
 SocketManager* SocketManager::sc = NULL;
 SocketManager::Garbo SocketManager::garbo;
-
 
 string combine_url(string pre,string cur){
     int last_splash_pos,first_double_dot_pos;
@@ -91,35 +92,25 @@ void reptile_regex(regexPara* reg){
     string t_splash("/");
     URL extracted_url;
     string match_str;
-    set<string> sub_links;
+    unordered_set<string> sub_links;
     
     for(sregex_iterator i = words_begin;i!=words_end;++i){
         smatch match = *i;
         match_str = match.str();
         match_str = match_str.substr(6,match_str.size()-6);
-        string js = "javascript:";
-        string css = ".css";
-        string at = "@";
         string mao = ":";
-        string plus = "+";
-        string url_end = "#";
-        string jpg = ".jpg";
-        
-        if(match_str.find(js)!=string::npos)continue;
-        if(match_str.find(css)!=string::npos)continue;
-        if(match_str.find(at)!=string::npos)continue;
-        if(match_str.find(plus)!=string::npos)continue;
-        if(match_str.find(url_end)!=string::npos)continue;
-        if(match_str.find(jpg)!=string::npos)continue;
+
+        regex filter("(javascript)|(\\.css)|(@)|(\\+)|(#)|(\\.jpg)|(\\?)");
+        smatch m;
+        if(regex_search(match_str,m,filter))continue;
 
         string::const_iterator start = match_str.begin();
         string::const_iterator end = match_str.end();
         regex_search(start,end,result,p1);    
         if(result.empty()){
-            if(match_str.substr(0,7)=="http://" || match_str.substr(0,8)=="https://")continue;
+            if(match_str.substr(0,4)=="http")continue;
             extracted_url.host = chost;
             extracted_url.pagepath = combine_url(cpagepath,match_str);
-            
         }else{
             extracted_url.host = result[0].str();
             extracted_url.pagepath = regex_replace(match_str,p2,t_splash);
@@ -156,6 +147,9 @@ void reptile_regex(regexPara* reg){
         tmp_links = "";
         pthread_mutex_unlock(&fmtx);
     }
+    pthread_mutex_lock(&smtx);
+    sockets_num--;
+    pthread_mutex_unlock(&smtx);
     // pthread_mutex_unlock(&fmtx);
     return ;
 }
@@ -166,21 +160,19 @@ void on_read(int sock,short event,void *arg){
     int ret = sm->recvHttpRespond(sock,argv);
     if(ret == -1){
         process_nhost(argv->url.host);
+        cout<<argv->url.host<<argv->url.pagepath<<endl;
     }else{
         string sh =(string)argv->ch;
         string state = sh.substr(9,3);
         if(state=="200"){
             visited_q.push_back(argv->url.host+argv->url.pagepath);
-            sm->pageCount(argv);
             regexPara *reg = new regexPara;
             reg->sh = sh;
             reg->pattern = "href=\"(http(s)?://[a-z0-9]{1,10}(\\.[a-z0-9]{1,10}){1,4}/)?.*?(?=\")";
             reg->url = argv->url;
             thpool_add_work(thpool, (void (*)(void*))reptile_regex,(void *)reg);
             sm->closeSocket(sock);
-            pthread_mutex_lock(&smtx);
-            sockets_num--;
-            pthread_mutex_unlock(&smtx);
+        }else{
         }
     }
     event_del(argv->func);
@@ -195,6 +187,7 @@ void on_send(int sock,short event,void *arg){
     if(ret == -1)return;
     argv->func = read_ev;
 
+    sm->pageCount(argv);
     event_set(read_ev,sock,EV_READ|EV_PERSIST,on_read,(void*)argv);
     event_base_set(sm->base,read_ev);
     event_add(read_ev,NULL);
@@ -219,6 +212,8 @@ int SocketManager::createSocket(int port,Arg *arg){
 		cout<<servAddr.sin_addr.s_addr<<" "<<fixedAddr<<endl;
 		return -1;
 	}
+
+    while(sockets_num>10000);
 
     sockfd = socket(AF_INET,SOCK_STREAM,0);
     if(sockfd == -1){

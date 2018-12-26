@@ -4,15 +4,53 @@
 #include <string.h>
 #include <queue>
 #include <iostream>
+#include <netdb.h>
 #include <unordered_map>
 #include "bloomfilter.hpp"
 #include "Message_Queue.cpp"
-
+#define BUF_SIZE 1024
 using namespace std;
 extern int page_count;
 extern BF host_bf;
 extern BF url_bf;
 extern Message_Queue<URL> *q;
+extern pthread_mutex_t tmtx;
+bool connect_url(URL url){
+    struct hostent *host;
+    int sockfd;
+    struct sockaddr_in servAddr;
+    host = gethostbyname(url.host.c_str());
+    servAddr.sin_family = AF_INET;
+    servAddr.sin_addr = *((struct in_addr *)host->h_addr);
+    servAddr.sin_port = htons(80);
+    bzero(&(servAddr.sin_zero),8);
+
+    sockfd = socket(AF_INET,SOCK_STREAM,0);
+    if(connect(sockfd,(struct sockaddr *)&servAddr,sizeof(struct sockaddr_in)) == -1) {
+        perror("connect 失败");
+    }
+    char sendBuf[BUF_SIZE];
+    int sendSize;
+    //构建一个http请求
+    sprintf(sendBuf,"GET %s HTTP/1.1 \r\nHost: %s \r\nConnection: Close \r\n\r\n",url.pagepath.c_str(),url.host.c_str());
+    if((sendSize = send(sockfd,sendBuf,BUF_SIZE,0)) == -1) {
+        perror("send 失败");
+    }
+    char recvBuf[BUF_SIZE];
+    int recvSize;
+    memset(recvBuf,0,sizeof(recvBuf));
+    int rec = recv(sockfd,recvBuf,BUF_SIZE,0);    
+    if(rec==-1){
+        return rec;
+    }
+    close(sockfd);
+    string sh = (string)recvBuf;
+    string state = sh.substr(9,3);
+    if(state=="200")return true;
+    return false;
+
+}
+
 // extern unordered_map<string,size_t> url_id_pairs;
 // extern ofstream *out;
 //创建一个大小为size的空间，返回携带空间指针的bf
@@ -169,13 +207,22 @@ bit setBitNumber(bit b, int num, int pos)
 void process_url(URL url){
 	char buf[1000];
 	string full_url = url.host+url.pagepath;
+	//处理index.html或者index.shtml的情况
+	if(full_url.find("index.html")!=string::npos)full_url=full_url.substr(0,full_url.size()-11);
+	if(full_url.find("index.shtml")!=string::npos)full_url=full_url.substr(0,full_url.size()-12);
+	//处理结尾文件夹slash
+	if(full_url.substr(full_url.size()-1,1)=="/")full_url = full_url.substr(0,full_url.size()-1);
 	int len = full_url.copy(buf,full_url.length());
 	buf[len]='\0';
+	pthread_mutex_lock(&tmtx);
 	if(bf_search(url_bf,buf)!=1){
-		bf_add(url_bf,buf);
-		q->push_msg(url);
-		page_count++;
+		if(connect_url(url)){
+			bf_add(url_bf,buf);
+			q->push_msg(url);
+			page_count++;
+		}
 	}
+	pthread_mutex_unlock(&tmtx);
 	return ;
 }
 

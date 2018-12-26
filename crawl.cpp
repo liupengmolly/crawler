@@ -11,6 +11,7 @@
 #include <regex>
 #include <queue>
 #include <unordered_map>
+#include <map>
 #include <set>
 #include <fstream>
 #include "bloomfilter.hpp"
@@ -20,7 +21,6 @@
 using namespace std;
 
 int page_count;
-// unordered_map<string,size_t> url_id_pairs;
 set<ele> matrix_eles;
 threadpool thpool;
 Message_Queue<URL> *q;
@@ -32,6 +32,8 @@ BF host_bf;
 BF url_bf;
 pthread_mutex_t fmtx;
 pthread_mutex_t smtx;
+pthread_mutex_t cmtx;
+pthread_mutex_t tmtx;
 string tmp_links;
 int ccount;
 long int fixedAddr;
@@ -53,13 +55,13 @@ int main(int argc, char* argv[]){
     host_bf = bf_create(VECTORSIZE);
     url_bf = bf_create(VECTORSIZE);
 
-    ofstream result;
-    result.open(argv[3]);
     out.open("tmp_link.txt");
 
-    thpool = thpool_init(10);
+    thpool = thpool_init(20);
     pthread_mutex_init(&fmtx,NULL);
     pthread_mutex_init(&smtx,NULL);
+    pthread_mutex_init(&tmtx,NULL);
+    pthread_mutex_init(&cmtx,NULL);
     tmp_links = "";
     ccount = 0;
 
@@ -75,7 +77,7 @@ int main(int argc, char* argv[]){
     int threads_num = 0;
     while(1){
         count += 1; 
-        // if(count==1000)break;
+        // if(count==3000)break;
         SocketManager *sm = SocketManager::getInstance();
         if(q->get_msg(arg->url)==0){
             sockfd = sm->createSocket(PORT,arg);
@@ -89,6 +91,8 @@ int main(int argc, char* argv[]){
     out.close();
     thpool_destroy(thpool);
 
+    ofstream result;
+    result.open(argv[3]);
     count = 0;
     unordered_map<string,size_t> url_id_pairs;
     for(string v_url:visited_q){
@@ -98,9 +102,9 @@ int main(int argc, char* argv[]){
     result<<endl;
     vector<ele> matrix_eles;
     ifstream in("tmp_link.txt");
-    char *buffer = new char[10000];
+    char *buffer = new char[1000000];
     string buffer_string;
-    while(in.getline(buffer,10000)){
+    while(in.getline(buffer,1000000)){
         vector<string> sub_links;
         buffer_string = buffer;
         int pos1=0;
