@@ -22,7 +22,8 @@ using namespace std;
 
 int page_count;
 set<ele> matrix_eles;
-threadpool thpool;
+// threadpool thpool;
+ThreadPool thpool(10);
 Message_Queue<URL> *q;
 vector<string> visited_q;
 unsigned char *dataHash;
@@ -32,7 +33,6 @@ BF host_bf;
 BF url_bf;
 pthread_mutex_t fmtx;
 pthread_mutex_t smtx;
-pthread_mutex_t cmtx;
 pthread_mutex_t tmtx;
 string tmp_links;
 int ccount;
@@ -57,11 +57,10 @@ int main(int argc, char* argv[]){
 
     out.open("tmp_link.txt");
 
-    thpool = thpool_init(20);
+    // thpool = thpool_init(10);
     pthread_mutex_init(&fmtx,NULL);
     pthread_mutex_init(&smtx,NULL);
     pthread_mutex_init(&tmtx,NULL);
-    pthread_mutex_init(&cmtx,NULL);
     tmp_links = "";
     ccount = 0;
 
@@ -89,7 +88,7 @@ int main(int argc, char* argv[]){
     out<<tmp_links;
     cout<<"process links end"<<endl;
     out.close();
-    thpool_destroy(thpool);
+    // thpool_destroy(thpool);
 
     ofstream result;
     result.open(argv[3]);

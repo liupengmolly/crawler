@@ -8,7 +8,7 @@ extern "C" {
 #include <iostream>
 #include <event.h>
 #include "bloomfilter.hpp"
-#include "thpool.h"
+#include "ThreadPool.h"
 using namespace std;
 
 #ifndef _ARG
@@ -31,14 +31,7 @@ private:
 	static SocketManager* sc;
 	SocketManager();
 	~SocketManager();
-	class Garbo {  //它的唯一工作就是在析构函数中删除parser的实例
-	public:
-		~Garbo() {
-			if (SocketManager::sc)
-				delete SocketManager::sc;
-		}
-	};
-	static Garbo garbo;
+	
 public:
 	int pages_count;
     struct event_base *base;

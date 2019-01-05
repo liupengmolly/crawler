@@ -25,9 +25,9 @@ extern vector<string> visited_q;
 // extern unordered_map<string,size_t> url_id_pairs;
 // extern set<ele> matrix_eles;
 extern ofstream out;
-extern threadpool thpool;
+// extern threadpool thpool;
+extern ThreadPool thpool;
 extern pthread_mutex_t fmtx;
-extern pthread_mutex_t cmtx;
 extern string tmp_links;
 extern int ccount;
 extern long int fixedAddr;
@@ -51,7 +51,6 @@ SocketManager* SocketManager::getInstance() {   //饿汉模式的单例
 };
 
 SocketManager* SocketManager::sc = NULL;
-SocketManager::Garbo SocketManager::garbo;
 
 string combine_url(string pre,string cur){
     int last_splash_pos,first_double_dot_pos;
@@ -170,7 +169,9 @@ void on_read(int sock,short event,void *arg){
             reg->sh = sh;
             reg->pattern = "href=\"(http(s)?://[a-z0-9]{1,10}(\\.[a-z0-9]{1,10}){1,4}/)?.*?(?=\")";
             reg->url = argv->url;
-            thpool_add_work(thpool, (void (*)(void*))reptile_regex,(void *)reg);
+            // thpool_add_work(thpool, (void (*)(void*))reptile_regex,(void *)reg);
+            thpool.enqueue(reptile_regex,reg);
+            // reptile_regex(reg);
             sm->closeSocket(sock);
         }else{
         }
@@ -272,7 +273,7 @@ int SocketManager::closeSocket(int sockfd) {
 
 void SocketManager::pageCount(Arg *arg){
     pages_count += 1;
-    if(pages_count%1000==0){
+    if(pages_count%100==0){
         cout<<("c p "+to_string(visited_q.size())+"/"+to_string(pages_count)+" "+to_string(q->get_nready()))<<" "<<sockets_num<<"\n";
     }
     return;
